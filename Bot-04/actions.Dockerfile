@@ -15,4 +15,6 @@ COPY ./actions /app/actions
 
 # Seguindo as boas práticas não executo o código com user root
 USER root
+
+EXPOSE 5055
 #USER 1001

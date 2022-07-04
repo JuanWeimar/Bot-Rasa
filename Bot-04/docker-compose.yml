@@ -1,15 +1,18 @@
 version: "3.0"
 services:
+
   container-bot:
-    build:
-      context: .
-      dockerfile: bot.Dockerfile
-    ports:
-      - 5005:5005
+    image: rasa/rasa:3.0.4-full
+    container_name: rasa
+    networks: 
+      - production
     depends_on:
       - container-server-bot
+    ports:
+      - 5005:5005
     volumes:
       - ./:/app
+    public: true
     command:
       - run
       - --enable-api
@@ -18,16 +21,20 @@ services:
       - --credentials
       - credentials.yml
       - --debug
+      
   container-server-bot:
     build:
       context: .
       dockerfile: actions.Dockerfile
-    image: rasa-actions:latest
+    image: rasa-actions-server
+    container_name: ractions
+    networks: 
+      - rasa-network
     ports:
       - 5055:5055
     volumes:
       - ./actions:/app/actions
-    public: true
+
   mongodb:
     image: mongo
     container_name: db
@@ -42,17 +49,18 @@ services:
 
   web:
     build:
-      context: .
+      context: Web/
       dockerfile: web.Dockerfile
     image: webchat
     container_name: webchat-app
     depends_on:
-      - "container-bot"
+      - container-bot
+      - container-server-bot
     networks: 
-      - rasa-network
+      - production
     ports: 
-      - 3000:3000
+      - 8080:8080
 
 networks: 
-    rasa-network:
-        driver: bridge
+    production:
+      driver: bridge
